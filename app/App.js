@@ -1,25 +1,34 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, TextInput, Image, View, ScrollView, PanResponder, Dimensions  } from 'react-native';
+import { AppRegistry, Text, TextInput, Image, View, ScrollView, PanResponder, Dimensions, WebView } from 'react-native';
 import { styles } from './styles/style';
 import { BOOKS } from './data/books';
+import bible from './data/ESV.json';
+import chapters from './data/chapters.json';
 
-export default class HelloWorldApp extends Component {
+export default class FastBibleApp extends Component {
 
   constructor (props){
     super(props);
+
     this.state = {
-      showJoon: true,
       infoY: 0,
       text:'touch sc',
       wait: false,
-      style: style,
+      style: {},
       verse: '',
-      chapter: 1
+      chapter: 1,
+      selectedBook: '', 
+      showHelper: false,
+      svH:''
     };
+
+    // Bindings
+    this.responderGrantedHandler = this.responderGrantedHandler.bind(this);
+    this.responderMoveHandler = this.responderMoveHandler.bind(this);
+    this.responderReleaseHandler = this.responderReleaseHandler.bind(this);
   }
 
   getPixelPercentBook() {
-    let chapters = require('./data/chapters.json');
     let totalChapters = 0;
     for (let i in chapters){
       totalChapters += chapters[i];
@@ -29,7 +38,6 @@ export default class HelloWorldApp extends Component {
   }
 
   getPixelPercentBookBasedOnCount(cnt) {
-    let chapters = require('./data/chapters.json');
     let totalChapters = 0;
     for (let i in chapters){
       totalChapters += chapters[i];
@@ -44,16 +52,16 @@ export default class HelloWorldApp extends Component {
   }
 
   get _list() {
-    return `${this.state.text} - ${this.getPixelPercentBook()}
-    ${Math.round((this.state.infoY / Dimensions.get('window').height)*100)}%`;
+    if (this.getPixelPercentBook() !== this.state.selectedBook)
+      this.setState({selectedBook: this.getPixelPercentBook()})
+    return `${this.state.selectedBook} - ${Math.round((this.state.infoY / Dimensions.get('window').height)*100)}%`;
   }
 
   //The View is now responding for touch events. This is the time to highlight and show the user what is happening
   responderGrantedHandler(evt) {
-    if (evt.nativeEvent.pageX > Dimensions.get('window').width * 3/4){
-      console.log('granted');
+//    if (evt.nativeEvent.pageX > Dimensions.get('window').width * 3/4){
       this.setState({verse: ''});
-    }
+      this.setState({showHelper: true});
   }
 
   // The user is moving their finger
@@ -61,34 +69,26 @@ export default class HelloWorldApp extends Component {
     if (!this.state.wait){
       this.followTouch();
       this.setState({infoY: evt.nativeEvent.pageY});
+
       wait = true;
-      setTimeout(function(){wait = false;}, 200);
+      setTimeout(function(){wait = false;}, 250);
     }
   }
 
-  // Fired at the end of the touch, ie "touchUp"
   responderReleaseHandler(evt) {
-    console.log('release');
-
-    if (evt.nativeEvent.pageX > Dimensions.get('window').width * 3/4){
-      this.setState({chapter: 1});
-      this.setState({verse: this.showChapter(this.getPixelPercentBook(),this.state.chapter), style: {marginTop: 10}});
-    }
-    else {
-      this.setState({chapter: this.state.chapter++});
-      this.setState({verse: this.showChapter(this.getPixelPercentBook(),this.state.chapter), style: {marginTop: 10}});
-    }
+      this.setState({verse: this.renderSelectedChapter(this.getPixelPercentBook(),this.state.chapter), style: {marginTop: 10}});
+      this.setState({showHelper: false});
   }
 
-  showChapter(book, num){
-    let bible = require('./data/ESV.json');
+  renderSelectedChapter(book, chapter){
+    
 
-    let chapter = '';
+    let chapterString = '';
 
-    for (i in bible[book][num]){
-       chapter += `${i} ${bible[book][num][i]}`;
+    for (i in bible[book][chapter]){
+       chapterString += ` <sup>${i}</sup> ${bible[book][chapter][i]}<br/>`;
     }
-    return chapter;
+    return chapterString;
   }
 
   followTouch() {
@@ -96,22 +96,46 @@ export default class HelloWorldApp extends Component {
   }
 
   render() {
-    let pic = { uri : 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAmlAAAAJDNhOGMxOWFjLTQ2NjMtNDM4Ni05MjI2LTFiYjkzNDc1MTQ2MQ.jpg' };
 
     return (
-      <View style={{flex: 1}}
-        onStartShouldSetResponder = {(evt) => 'true'}
-        onMoveShouldSetResponder = {(evt) => 'true'}
-        onResponderGrant = {this.responderGrantedHandler.bind(this)}
-        onResponderMove = {this.responderMoveHandler.bind(this)}
-        onResponderRelease = {this.responderReleaseHandler.bind(this)}
-        >
-          <Text style={[{flex:1}, this.state.style]}>{this.state.verse ? this.state.verse : this._list}</Text>
+      <View style={styles.section}>
+        <View>
+          <Text>
+            {this.state.selectedBook}
+          </Text>
+        </View>
+        <View style={styles.contentAreaContainer}>
+          <WebView 
+            style={styles.contentArea} 
+            source={{html: this.state.verse}} />
+          <View 
+            style={styles.actionSpot}
+            onStartShouldSetResponder = {(evt) => 'true'}
+            onMoveShouldSetResponder = {(evt) => 'true'}
+            onResponderGrant = {this.responderGrantedHandler}
+            onResponderMove = {this.responderMoveHandler}
+            onResponderRelease = {this.responderReleaseHandler}></View>
+        </View>
+        <View style={styles.toolbar}>
+          <View style={styles.tool}>
+            <Text>1</Text>
+          </View>
+          <View style={styles.tool}>
+            <Text>2</Text>
+          </View>
+          <View style={styles.tool}>
+            <Text>3</Text>
+          </View>
+        </View>
+        <Text style={[styles.guide, this.state.style, {display: this.state.showHelper ? 'flex' : 'none'}]}>
+          {this._list}
+        </Text>
       </View>
     );
   }
 }
 
+/*
 class SomethingCool extends Component {
   render() {
     return (
@@ -120,6 +144,20 @@ class SomethingCool extends Component {
   }
 }
 
+          >>
+          this.refs.listView.scrollTo({
+            y: Math.round((this.state.infoY / Dimensions.get('window').height) * this.state.svH),
+            animated: false,
+          })
+          <<
+          <ScrollView style={{display: 'none'}} scrollEnabled={false} ref='listView' onContentSizeChange={(height) => {
+            this.setState({svH: height});
+          }}>
+            {BOOKS.map((entry,index) => {
+              return <Text key={index} style={{fontSize: 50}}>{entry}</Text>
+           })}
+          </ScrollView>
+
  var style = {
   flex: 1
-}
+}*/
