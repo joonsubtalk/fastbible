@@ -78,6 +78,7 @@ export default class FastBibleApp extends Component {
   responderReleaseHandler(evt) {
       this.setState({verse: this.renderSelectedChapter(this.getPixelPercentBook(),this.state.chapter), style: {marginTop: 10}});
       this.setState({showHelper: false});
+      this.setState({selectedBook : this.getPixelPercentBook()})
   }
 
   renderSelectedChapter(book, chapter){
@@ -99,9 +100,9 @@ export default class FastBibleApp extends Component {
 
     return (
       <View style={styles.section}>
-        <View>
-          <Text>
-            {this.state.selectedBook}
+        <View style={styles.header}>
+          <Text style={styles.headerText}>
+            {`${this.state.selectedBook} ${this.state.chapter} `}
           </Text>
         </View>
         <View style={styles.contentAreaContainer}>
@@ -118,17 +119,17 @@ export default class FastBibleApp extends Component {
         </View>
         <View style={styles.toolbar}>
           <View style={styles.tool}>
-            <Text>1</Text>
+            <Text>Previous Ch</Text>
+          </View>
+          <View style={styles.midTool}>
+            <Text>{`${this.state.selectedBook}`}</Text>
           </View>
           <View style={styles.tool}>
-            <Text>2</Text>
-          </View>
-          <View style={styles.tool}>
-            <Text>3</Text>
+            <Text>Next Ch</Text>
           </View>
         </View>
         <Text style={[styles.guide, this.state.style, {display: this.state.showHelper ? 'flex' : 'none'}]}>
-          {this._list}
+          {`${this.getPixelPercentBook()}`}
         </Text>
       </View>
     );

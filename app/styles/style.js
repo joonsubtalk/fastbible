@@ -4,6 +4,13 @@ export const styles = StyleSheet.create({
   section: {
     flex: 1
   },
+  header: {
+    height: 40,
+    backgroundColor: '#25256B'
+  },
+  headerText: {
+    color: 'white'
+  },
   contentAreaContainer: {
     flex: 3,
     flexDirection: 'row'
@@ -21,8 +28,14 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around'
   },
-  tool: {
+  midTool: {
     flex: 1,
+    padding: 20,
+    backgroundColor: 'skyblue',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  tool: {
     padding: 20,
     backgroundColor: 'skyblue',
     justifyContent: 'center',
